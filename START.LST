@@ -1,0 +1,135 @@
+1 :				* PROGRAMA START
+2 :				
+3 :				*DECLARACION CONSTANTES
+4 :				
+5 :		102F		SCDR   EQU   $102F
+6 :		102D		SCCR2  EQU   $102D
+7 :		102E		SCSR   EQU   $102E
+8 :		102C		SCCR1  EQU   $102C
+9 :		102B		BAUD   EQU   $102B
+10 :		103C		HPRIO  EQU   $103C
+11 :		1028		SPCR   EQU   $1028
+12 :		105D		CSCTL  EQU   $105D
+13 :		1038		OPT2   EQU   $1038
+14 :		1009		DDRD   EQU   $1009
+15 :				
+16 :				*DECLARACION DE VARIABLES
+17 :				
+18 :		0000		ORDEN EQU $0000
+19 :		0001		U1    EQU $0001
+20 :		0002		U2    EQU $0002
+21 :		0003		U3    EQU $0003
+22 :		0004		U4    EQU $0004
+23 :				
+24 :		8000		      ORG $8000
+25 :				INICIO
+26 :	8000 (XX)    :		      LD #$00FF
+TIPO DE ERROR 04
+27 :	8001 (BD8065)    :		      JSR SERIAL
+28 :				
+29 :				
+30 :	8004 (7F0001)    :		      CLR U1
+31 :	8007 (7F0002)    :		      CLR U2
+32 :	800A (7F0003)    :		      CLR U3
+33 :	800D (7F0004)    :		      CLR U4
+34 :				CICLATE
+35 :	8010 (863F)    :		      LDAA #'?
+36 :	8012 (9700)    :		      STAA ORDEN
+37 :				CICLO
+38 :	8014 (9600)    :		      LDAA ORDEN
+39 :	8016 (813F)    :		      CMPA #'?
+40 :	8018 (27FA)    :		      BEQ  CICLO
+41 :				
+42 :	801A (D601)    :		      LDAB U1
+43 :	801C (2621)    :		      BNE  SIGUET
+44 :				BORRA
+45 :	801E (7F0001)    :		      CLR U1
+46 :	8021 (7F0002)    :		      CLR U2
+47 :	8024 (7F0003)    :		      CLR U3
+48 :	8027 (7F0004)    :		      CLR U4
+49 :				
+50 :	802A (8153)    :		      CMPA #'S
+51 :	802C (26E2)    :		      BNE CICLATE
+52 :	802E (9701)    :		      STAA U1     * VALIDA S
+53 :	8030 (7E8010)    :		      JMP CICLATE
+54 :				
+55 :				SIGUET
+56 :	8033 (D602)    :		      LDAB U2
+57 :	8035 (2609)    :		      BNE  SIGUEA
+58 :	8037 (8154)    :		      CMPA #'T
+59 :	8039 (26E3)    :		      BNE BORRA
+60 :	803B (9702)    :		      STAA U2     * VALIDA T
+61 :	803D (7E8010)    :		      JMP CICLATE
+62 :				
+63 :				SIGUEA
+64 :	8040 (D603)    :		      LDAB U3
+65 :	8042 (2609)    :		      BNE  SIGUER
+66 :	8044 (8141)    :		      CMPA #'A
+67 :	8046 (26D6)    :		      BNE BORRA
+68 :	8048 (9703)    :		      STAA U3     * VALIDA A
+69 :	804A (7E8010)    :		      JMP CICLATE
+70 :				      
+71 :				SIGUER
+72 :	804D (D604)    :		      LDAB U4
+73 :	804F (2609)    :		      BNE  SIGUEF
+74 :	8051 (8152)    :		      CMPA #'R
+75 :	8053 (26C9)    :		      BNE BORRA
+76 :	8055 (9704)    :		      STAA U4     * VALIDA R
+77 :	8057 (7E8010)    :		      JMP CICLATE
+78 :				
+79 :				SIGUEF
+80 :	805A (8154)    :		      CMPA #'T
+81 :	805C (26C0)    :		      BNE BORRA
+82 :				EXITO
+83 :	805E (8645)    :		      LDAA #'E
+84 :	8060 (9700)    :		      STAA ORDEN
+85 :				      
+86 :	8062 (7E805E)    :		      JMP EXITO
+87 :				
+88 :				SERIAL
+89 :				
+90 :	8065 (CC302C)    :		       LDD   #$302C  * CONFIGURA PUERTO SERIAL
+91 :	8068 (B7102B)    :		       STAA  BAUD    * BAUD  9600  para cristal de 8MHz
+92 :	806B (F7102D)    :		       STAB  SCCR2   * HABILITA  RX Y TX PERO INTERRUPCN SOLO RX
+93 :	806E (8600)    :		       LDAA  #$00
+94 :	8070 (B7102C)    :		       STAA  SCCR1   * 8 BITS
+95 :				
+96 :	8073 (86FE)    :		       LDAA  #$FE    * CONFIG PUERTO D COMO SALIDAS (EXCEPTO PD0)
+97 :	8075 (B71009)    :		       STAA  DDRD    * SEA  ENABLE DEL DISPLAY  PD4  Y RS PD3
+98 :				                     
+99 :				      
+100 :	8078 (8604)    :		       LDAA  #$04
+101 :	807A (B7103C)    :		       STAA  HPRIO
+102 :				
+103 :	807D (8600)    :		       LDAA  #$00
+104 :	807F (06)    :		       TAP
+105 :	8080 (39)    :		      RTS
+106 :				
+107 :				      
+108 :				***********************************
+109 :				* ATENCION A INTERRUPCION SERIAL
+110 :				***********************************
+111 :		F100		       ORG  $F100
+112 :				
+113 :	F100 (B6102E)    :		       LDAA SCSR
+114 :	F103 (B6102F)    :		       LDAA SCDR
+115 :	F106 (9700)    :		       STAA ORDEN
+116 :				         
+117 :	F108 (3B)    :		       RTI
+118 :				
+119 :				***********************************
+120 :				* VECTOR INTERRUPCION SERIAL
+121 :				***********************************
+122 :		FFD6		       ORG   $FFD6
+123 :	FFD6 (F100)    :		       FCB   $F1,$00       
+124 :				
+125 :				
+126 :				***********************************
+127 :				*RESET
+128 :				***********************************
+129 :		FFFE		       ORG    $FFFE
+130 :	FFFE (8000)    :		RESET  FCB    $80,$00
+131 :				***********************************
+132 :				
+
+ERROR 010
